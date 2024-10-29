@@ -6,19 +6,28 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 
+// Define interfaces for your todo data
+interface TodoItem {
+  _id: string;
+  title: string;
+  description: string;
+  isCompleted: boolean;
+}
+
 const Page = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{ title: string; description: string }>({
     title: "",
     description: "",
   });
 
-  const [todoData, setTodoData] = useState([]);
+  const [todoData, setTodoData] = useState<TodoItem[]>([]);
+
   const fetchTodos = async () => {
     const response = await axios("/api");
     setTodoData(response.data.todos);
   };
 
-  const deleteTodos = async (id: number) => {
+  const deleteTodos = async (id: string) => { // Change id type to string
     const response = await axios.delete("/api", {
       params: {
         mongoId: id,
@@ -28,7 +37,7 @@ const Page = () => {
     fetchTodos();
   };
 
-  const completeTodos = async (id: number) => {
+  const completeTodos = async (id: string) => { // Change id type to string
     const response = await axios.put(
       "/api",
       {},
@@ -46,13 +55,12 @@ const Page = () => {
     fetchTodos();
   }, []);
 
-  const onChangeHandler = (e: any) => {
-    const name = e.target.name;
-    const value = e.target.value;
+  const onChangeHandler = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target; // Destructure name and value directly
     setFormData((form) => ({ ...form, [name]: value }));
   };
 
-  const onSubmitHandler = async (e: any) => {
+  const onSubmitHandler = async (e: React.FormEvent<HTMLFormElement>) => { // Specify the event type
     e.preventDefault();
 
     try {
@@ -109,38 +117,26 @@ const Page = () => {
           <table className="w-full text-sm text-left rtl:text-right text-gray-700 dark:text-gray-400 bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
             <thead className="text-xs uppercase bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
               <tr>
-                <th scope="col" className="px-6 py-3">
-                  ID
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Title
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Description
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Status
-                </th>
-                <th scope="col" className="px-6 py-3">
-                  Action
-                </th>
+                <th scope="col" className="px-6 py-3">ID</th>
+                <th scope="col" className="px-6 py-3">Title</th>
+                <th scope="col" className="px-6 py-3">Description</th>
+                <th scope="col" className="px-6 py-3">Status</th>
+                <th scope="col" className="px-6 py-3">Action</th>
               </tr>
             </thead>
             <tbody>
-              {todoData.map((item: any, index: number) => {
-                return (
-                  <Todo
-                    key={index}
-                    id={index}
-                    title={item.title}
-                    description={item.description}
-                    complete={item.isCompleted}
-                    mongoId={item._id}
-                    deleteTodos={deleteTodos}
-                    completeTodos={completeTodos}
-                  />
-                );
-              })}
+              {todoData.map((item, index) => (
+                <Todo
+                  key={item._id} // Use item._id as the unique key
+                  id={index} // Optional if you don't need the index
+                  title={item.title}
+                  description={item.description}
+                  complete={item.isCompleted}
+                  mongoId={item._id}
+                  deleteTodos={deleteTodos}
+                  completeTodos={completeTodos}
+                />
+              ))}
             </tbody>
           </table>
         </div>
